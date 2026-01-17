@@ -1,0 +1,1136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Java Quest - Retos FP DAW</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(0,0,0,.18);
+      --text:#e9ecff;
+      --muted:#aab2ff;
+      --accent:#6ee7ff;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.12);
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+      --radius:16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:18px;
+      /*background: radial-gradient(1200px 600px at 20% 0%, rgba(110,231,255,.12), transparent 60%),
+                  radial-gradient(900px 500px at 90% 30%, rgba(170,178,255,.10), transparent 60%),
+                  var(--bg);*/
+      background: url('frogs.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .app{
+      width:min(1200px, 100%);
+      display:grid;
+      grid-template-columns: 380px 1fr;
+      gap:16px;
+    }
+    @media (max-width: 980px){ .app{grid-template-columns:1fr} }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    header{
+      padding:16px 16px 12px;
+      border-bottom:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(110,231,255,.10), transparent);
+    }
+    .title{display:flex; gap:10px; align-items:center; font-weight:850; letter-spacing:.2px}
+    .badge{
+      font-size:12px; padding:4px 10px; border:1px solid var(--border);
+      border-radius:999px; color:var(--muted); background:rgba(0,0,0,.15);
+    }
+    .sub{margin-top:6px; color:var(--muted); font-size:13px; line-height:1.35}
+
+    .side .content{padding:14px 14px 16px}
+    .progress{display:flex; gap:10px; align-items:center; margin:10px 0 14px}
+    .bar{
+      flex:1; height:10px; border-radius:999px; border:1px solid var(--border);
+      overflow:hidden; background:rgba(0,0,0,.18);
+    }
+    .bar > div{height:100%; width:0%; background: linear-gradient(90deg, var(--accent), rgba(110,231,255,.35))}
+    .list{display:flex; flex-direction:column; gap:8px}
+    .item{
+      padding:10px 10px; border:1px solid var(--border); border-radius:12px;
+      background:rgba(0,0,0,.12); cursor:pointer;
+      display:flex; align-items:center; justify-content:space-between;
+      transition:transform .08s ease, background .2s ease;
+    }
+    .item:hover{transform:translateY(-1px); background:rgba(0,0,0,.18)}
+    .item.active{outline:2px solid rgba(110,231,255,.35); background:rgba(110,231,255,.08)}
+    .item small{color:var(--muted)}
+    .pill{
+      font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid var(--border);
+      color:var(--muted);
+    }
+    .pill.ok{color:var(--good); border-color:rgba(74,222,128,.35); background:rgba(74,222,128,.10)}
+    .pill.no{color:var(--muted)}
+
+    .main header{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+    .main header .right{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+
+    button{
+      appearance:none; border:1px solid var(--border);
+      background:rgba(0,0,0,.18); color:var(--text);
+      padding:10px 12px; border-radius:12px; cursor:pointer; font-weight:700;
+      transition:transform .06s ease, background .2s ease, border .2s ease;
+    }
+    button:hover{background:rgba(0,0,0,.25)}
+    button:active{transform:translateY(1px)}
+    button.primary{border-color:rgba(110,231,255,.35); background:rgba(110,231,255,.14)}
+    button.primary:hover{background:rgba(110,231,255,.20)}
+    button.secondary{border-color:rgba(170,178,255,.25); background:rgba(170,178,255,.10)}
+    button.danger{border-color:rgba(251,113,133,.35); background:rgba(251,113,133,.10)}
+
+    .grid{display:grid; grid-template-columns: 1fr 380px; gap:12px; padding:14px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+
+    .panel{background:rgba(0,0,0,.14); border:1px solid var(--border); border-radius:14px; overflow:hidden}
+    .ph{
+      padding:10px 12px; border-bottom:1px solid var(--border);
+      color:var(--muted); font-size:12px; letter-spacing:.35px; text-transform:uppercase;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .pb{padding:12px}
+
+    .hint{color:var(--muted); font-size:13px; line-height:1.35; margin:0 0 10px}
+    .task{
+      background:rgba(110,231,255,.08);
+      border:1px solid rgba(110,231,255,.25);
+      padding:10px 12px;
+      border-radius:12px;
+      margin:10px 0 12px;
+      color:var(--text);
+    }
+    .metaRow{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 0}
+    .chip{
+      font-size:12px; padding:4px 10px; border-radius:999px;
+      border:1px solid var(--border); background:rgba(0,0,0,.14); color:var(--muted);
+    }
+    textarea{
+      width:100%; min-height:340px; resize:vertical; border:none; outline:none;
+      font-family:var(--mono); font-size:13px; line-height:1.55;
+      background:transparent; color:var(--text);
+    }
+    .io{
+      font-family:var(--mono); font-size:13px; line-height:1.45;
+      white-space:pre-wrap; word-break:break-word;
+      background:rgba(0,0,0,.20);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 10px;
+      min-height:160px;
+    }
+    .status{margin-top:10px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px; color:var(--muted)}
+    .dot{width:10px; height:10px; border-radius:50%; background:rgba(170,178,255,.5)}
+    .dot.ok{background:rgba(74,222,128,.9)}
+    .dot.bad{background:rgba(251,113,133,.9)}
+    .tiny{font-size:12px; color:var(--muted); margin-top:10px; line-height:1.35}
+    .kbd{
+      font-family:var(--mono); font-size:12px; padding:2px 6px; border:1px solid var(--border);
+      border-bottom-color:rgba(255,255,255,.18); border-radius:8px; background:rgba(0,0,0,.12); color:var(--muted);
+    }
+
+    /* Modal recompensa */
+    .modalWrap{
+      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+      background:rgba(0,0,0,.55); padding:18px; z-index:50;
+    }
+    .modal{
+      width:min(720px, 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .modal header{background: linear-gradient(180deg, rgba(74,222,128,.14), transparent)}
+    .modal .body{padding:14px 16px 16px}
+    .modal h2{margin:0 0 6px; font-size:20px}
+    .modal p{margin:0; color:var(--muted); line-height:1.45}
+    .modal .actions{padding:0 16px 16px; display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap}
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <section class="card side">
+      <header>
+        <div class="title">
+          <span id="brandTitle">Java Quest</span>
+          <span class="badge" id="brandBadge">FP DAW</span>
+        </div>
+        <div class="sub" id="brandSubtitle">
+          6 páginas · retos cortos de Java · validación automática por estructura (tipo freeCodeCamp).
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="progress">
+          <div class="bar"><div id="barFill"></div></div>
+          <div class="badge" id="progText">0/0</div>
+        </div>
+
+        <div class="list" id="pageList"></div>
+
+        <div class="tiny">
+          Ejecuta con <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>.
+        </div>
+      </div>
+    </section>
+
+    <section class="card main">
+      <header>
+        <div>
+          <div class="title" id="pageTitle">Página</div>
+          <div class="sub" id="pageDesc"></div>
+        </div>
+        <div class="right">
+          <button class="secondary" id="btnPrev">◀ Anterior</button>
+          <button class="secondary" id="btnNext">Siguiente ▶</button>
+          <button id="btnReset" title="Vuelve al código inicial del reto">Reset reto</button>
+          <button class="primary" id="btnCheck">Comprobar</button>
+          <button class="danger" id="btnClear">Limpiar</button>
+        </div>
+      </header>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="ph">
+            <span id="challengeLabel">Reto</span>
+            <span class="badge" id="challengeMeta"></span>
+          </div>
+          <div class="pb">
+            <p class="hint" id="hint"></p>
+            <div class="task" id="task"></div>
+            <div class="metaRow">
+              <span class="chip" id="chipTime"></span>
+              <span class="chip" id="chipTopic"></span>
+              <span class="chip" id="chipRules"></span>
+            </div>
+            <div style="height:10px"></div>
+            <textarea id="code" spellcheck="false"></textarea>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="ph">
+            <span>Resultado</span>
+            <span class="badge" id="resultBadge">Sin comprobar</span>
+          </div>
+          <div class="pb">
+            <div class="io" id="output"></div>
+            <div class="status">
+              <span class="dot" id="dot"></span>
+              <span id="statusText">Completa el reto y pulsa “Comprobar”.</span>
+            </div>
+            <div class="tiny" id="footerNote">
+              Nota: la validación es estructural (firmas, keywords, anotaciones, etc.). Ideal para Genially sin backend.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal recompensa -->
+  <div class="modalWrap" id="modalWrap" role="dialog" aria-modal="true">
+    <div class="modal">
+      <header>
+        <div class="title" style="padding:16px 16px 12px">
+          <span id="modalTitle">¡Recompensa!</span>
+          <span class="badge" id="modalBadge">Logro</span>
+        </div>
+        <div class="sub" id="modalSubtitle" style="padding:0 16px 14px"></div>
+      </header>
+      <div class="body">
+        <h2 id="modalH2">¡Bien hecho!</h2>
+        <p id="modalText"></p>
+      </div>
+      <div class="actions">
+        <button class="primary" id="modalClose">Continuar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // =============================
+  //  PERSONALIZA AQUÍ (fondo, textos, recompensa)
+  // =============================
+  const CONFIG = {
+    brandTitle: "Java Quest",
+    brandBadge: "FP DAW",
+    brandSubtitle: "6 páginas · retos de Java · cada página ~6 min · estilo freeCodeCamp (validación por estructura).",
+    footerNote: "Tip: Puedes integrar esto en Genially como iframe. Hosting en HTTPS recomendado.",
+
+    // Fondo (elige 1): "default" o "custom"
+//    backgroundMode: "default",
+    backgroundMode: "custom",
+    // Si backgroundMode="custom", usa un CSS background válido:
+    //customBackground: "linear-gradient(135deg, #0b1020 0%, #111833 45%, #0b1020 100%)",
+    customBackground: "url('frogs.png') no-repeat center center cover",
+
+
+    // Mensajes de recompensa
+    pageRewardEnabled: true,
+    pageRewardTitle: "¡Página completada!",
+    pageRewardBadge: "Checkpoint",
+    pageRewardTemplate: (page) =>
+      `Has completado "${page.title}".\nSiguiente paso: ${page.nextHint || "continúa con la siguiente página"}.`,
+
+    finalRewardTitle: "¡Recompensa desbloqueada!",
+    finalRewardBadge: "Maestría",
+    finalRewardH2: "¡Has completado el circuito de Java!",
+    finalRewardText:
+      "Recompensa: puedes presumir de tu badge 🏅. (Personaliza este mensaje con una pista, código QR, enlace o clave secreta)."
+  };
+
+  // Aplica fondo custom si procede
+  if (CONFIG.backgroundMode === "custom") {
+    document.body.style.background = CONFIG.customBackground;
+  }
+
+  // =============================
+  //  CONTENIDO: 6 PÁGINAS (cada una ~6 min)
+  //  Nota: no ejecuta Java real. Valida estructura por reglas.
+  // =============================
+  const pages = [
+    {
+      id: 1,
+      title: "Modelado de clases (POJO)",
+      desc: "Encapsulación, constructor y getters. En DAW esto aparece siempre (DTOs, modelos).",
+      nextHint: "Herencia y polimorfismo",
+      challenges: [
+        {
+          id: "1.1",
+          topic: "Clases",
+          time: "~2 min",
+          hint: "Crea un POJO con campos privados, constructor y getters.",
+          task:
+            "Crea la clase Usuario con:\n" +
+            "- private String email;\n" +
+            "- private int edad;\n" +
+            "Constructor Usuario(String email, int edad)\n" +
+            "Getters getEmail() y getEdad().",
+          starter:
+`public class Usuario {
+  // 1) campos privados
+
+  // 2) constructor
+
+  // 3) getters
+}`,
+          rules: [
+            must(/class\s+Usuario\b/, "Debe existir la clase Usuario."),
+            must(/private\s+String\s+email\s*;/, "Debe existir: private String email;"),
+            must(/private\s+int\s+edad\s*;/, "Debe existir: private int edad;"),
+            must(/Usuario\s*\(\s*String\s+email\s*,\s*int\s+edad\s*\)/, "Debe existir el constructor Usuario(String email, int edad)."),
+            must(/this\.email\s*=\s*email\s*;/, "En el constructor asigna this.email = email;"),
+            must(/this\.edad\s*=\s*edad\s*;/, "En el constructor asigna this.edad = edad;"),
+            must(/String\s+getEmail\s*\(\s*\)/, "Debe existir getEmail()."),
+            must(/int\s+getEdad\s*\(\s*\)/, "Debe existir getEdad()."),
+            forbid(/public\s+String\s+email\s*;/, "email no debe ser public (usa private)."),
+          ]
+        },
+        {
+          id: "1.2",
+          topic: "Métodos",
+          time: "~2 min",
+          hint: "Un método de instancia que use los campos.",
+          task:
+            "Añade a Usuario un método boolean esMayorDeEdad() que devuelva true si edad >= 18.",
+          starter:
+`public class Usuario {
+  private String email;
+  private int edad;
+
+  public Usuario(String email, int edad) {
+    this.email = email;
+    this.edad = edad;
+  }
+
+  // Añade aquí esMayorDeEdad()
+
+}`,
+          rules: [
+            must(/boolean\s+esMayorDeEdad\s*\(\s*\)/, "Debe existir esMayorDeEdad()."),
+            must(/return\s+edad\s*>=\s*18\s*;/, "Debe devolver: edad >= 18"),
+          ]
+        },
+        {
+          id: "1.3",
+          topic: "toString",
+          time: "~2 min",
+          hint: "Sobrescribe toString para depurar rápido.",
+          task:
+            "Sobrescribe toString() para que devuelva exactamente:\n" +
+            "Usuario{email='X', edad=Y}\n" +
+            "(usa this.email y this.edad).",
+          starter:
+`public class Usuario {
+  private String email;
+  private int edad;
+
+  public Usuario(String email, int edad) {
+    this.email = email;
+    this.edad = edad;
+  }
+
+  @Override
+  public String toString() {
+    // devuelve el formato pedido
+  }
+}`,
+          rules: [
+            must(/@Override/, "Debe incluir @Override."),
+            must(/String\s+toString\s*\(\s*\)/, "Debe sobrescribir toString()."),
+            must(/return\s+"Usuario\{email='\s*"\s*\+\s*this\.email\s*\+\s*"',\s*edad="\s*\+\s*this\.edad\s*\+\s*"\}";/,
+                 "Debe devolver exactamente el formato: Usuario{email='X', edad=Y} (con concatenación)."),
+          ]
+        }
+      ]
+    },
+
+    {
+      id: 2,
+      title: "Herencia y polimorfismo",
+      desc: "Clases base, extends, @Override. Muy típico en diseño OO.",
+      nextHint: "Colecciones y Streams",
+      challenges: [
+        {
+          id: "2.1",
+          topic: "Herencia",
+          time: "~2 min",
+          hint: "Una clase abstracta y una implementación.",
+          task:
+            "Crea abstract class Empleado con:\n" +
+            "- protected String nombre;\n" +
+            "- constructor Empleado(String nombre)\n" +
+            "- abstract double salarioMensual();",
+          starter:
+`public abstract class Empleado {
+  // completa aquí
+}`,
+          rules: [
+            must(/abstract\s+class\s+Empleado\b/, "Debe existir abstract class Empleado."),
+            must(/protected\s+String\s+nombre\s*;/, "Debe existir: protected String nombre;"),
+            must(/Empleado\s*\(\s*String\s+nombre\s*\)/, "Debe existir constructor Empleado(String nombre)."),
+            must(/this\.nombre\s*=\s*nombre\s*;/, "En el constructor asigna this.nombre = nombre;"),
+            must(/abstract\s+double\s+salarioMensual\s*\(\s*\)\s*;/, "Debe existir abstract double salarioMensual();"),
+          ]
+        },
+        {
+          id: "2.2",
+          topic: "Polimorfismo",
+          time: "~2 min",
+          hint: "extends + override.",
+          task:
+            "Crea class EmpleadoFijo extends Empleado con:\n" +
+            "- private double salario;\n" +
+            "- constructor EmpleadoFijo(String nombre, double salario)\n" +
+            "- override salarioMensual() devolviendo salario",
+          starter:
+`public class EmpleadoFijo extends Empleado {
+  // completa aquí
+}`,
+          rules: [
+            must(/class\s+EmpleadoFijo\s+extends\s+Empleado\b/, "Debe existir EmpleadoFijo extends Empleado."),
+            must(/private\s+double\s+salario\s*;/, "Debe existir: private double salario;"),
+            must(/EmpleadoFijo\s*\(\s*String\s+nombre\s*,\s*double\s+salario\s*\)/, "Debe existir constructor con (String nombre, double salario)."),
+            must(/super\s*\(\s*nombre\s*\)\s*;/, "En el constructor usa super(nombre)."),
+            must(/this\.salario\s*=\s*salario\s*;/, "En el constructor asigna this.salario = salario;"),
+            must(/@Override/, "Debe incluir @Override."),
+            must(/double\s+salarioMensual\s*\(\s*\)/, "Debe implementar salarioMensual()."),
+            must(/return\s+salario\s*;/, "Debe devolver salario."),
+          ]
+        },
+        {
+          id: "2.3",
+          topic: "Método común",
+          time: "~2 min",
+          hint: "Método concreto en base que se apoya en abstract.",
+          task:
+            "Añade en Empleado un método String resumen() que devuelva:\n" +
+            "\"<nombre>: <salarioMensual()>\" (concatenación simple).",
+          starter:
+`public abstract class Empleado {
+  protected String nombre;
+
+  public Empleado(String nombre) {
+    this.nombre = nombre;
+  }
+
+  public abstract double salarioMensual();
+
+  // añade aquí resumen()
+}`,
+          rules: [
+            must(/String\s+resumen\s*\(\s*\)/, "Debe existir resumen()."),
+            must(/return\s+nombre\s*\+\s*": "\s*\+\s*salarioMensual\s*\(\s*\)\s*;/,
+                 "Debe devolver: nombre + \": \" + salarioMensual()"),
+          ]
+        }
+      ]
+    },
+
+    {
+      id: 3,
+      title: "Colecciones y Streams",
+      desc: "List, Map y stream básico. Muy DAW para manipular datos.",
+      nextHint: "Excepciones y validación",
+      challenges: [
+        {
+          id: "3.1",
+          topic: "List",
+          time: "~2 min",
+          hint: "Filtrar con stream().filter().",
+          task:
+            "Completa el método filtrarMayores que reciba List<Integer> nums y devuelva\n" +
+            "una lista con los números > 10 usando streams.",
+          starter:
+`import java.util.*;
+import java.util.stream.*;
+
+public class Filtros {
+  public static List<Integer> filtrarMayores(List<Integer> nums) {
+    // usa stream, filter y collect
+    return null;
+  }
+}`,
+          rules: [
+            must(/List<\s*Integer\s*>\s+filtrarMayores\s*\(\s*List<\s*Integer\s*>\s+\w+\s*\)/, "Firma correcta: filtrarMayores(List<Integer> nums)."),
+            must(/stream\s*\(\s*\)/, "Debe usar stream()."),
+            must(/filter\s*\(\s*\w+\s*->\s*\w+\s*>\s*10\s*\)/, "Debe filtrar con n -> n > 10 (o equivalente)."),
+            must(/collect\s*\(\s*Collectors\.toList\s*\(\s*\)\s*\)/, "Debe usar collect(Collectors.toList())."),
+            forbid(/return\s+null\s*;/, "No debe devolver null."),
+          ]
+        },
+        {
+          id: "3.2",
+          topic: "Map",
+          time: "~2 min",
+          hint: "Contar con Map y getOrDefault.",
+          task:
+            "Implementa contarPorInicial(List<String> nombres):\n" +
+            "devuelve un Map<Character, Integer> con la cantidad por inicial (primera letra).",
+          starter:
+`import java.util.*;
+
+public class Conteo {
+  public static Map<Character, Integer> contarPorInicial(List<String> nombres) {
+    Map<Character, Integer> mapa = new HashMap<>();
+    // completa aquí
+    return mapa;
+  }
+}`,
+          rules: [
+            must(/Map<\s*Character\s*,\s*Integer\s*>\s+contarPorInicial/, "Debe devolver Map<Character, Integer>."),
+            must(/new\s+HashMap\s*<\s*>\s*\(\s*\)/, "Debe crear un HashMap."),
+            must(/getOrDefault\s*\(/, "Usa getOrDefault(...) para contar fácil."),
+            must(/charAt\s*\(\s*0\s*\)/, "Debe obtener la inicial con charAt(0)."),
+            must(/mapa\.put\s*\(/, "Debe hacer put en el mapa."),
+          ]
+        },
+        {
+          id: "3.3",
+          topic: "Stream + map",
+          time: "~2 min",
+          hint: "Transformar y ordenar.",
+          task:
+            "Completa normalizar(List<String> emails):\n" +
+            "devuelve lista en minúsculas, sin espacios, ordenada alfabéticamente (stream).",
+          starter:
+`import java.util.*;
+import java.util.stream.*;
+
+public class Normalizador {
+  public static List<String> normalizar(List<String> emails) {
+    // toLowerCase, trim, sorted, collect
+    return null;
+  }
+}`,
+          rules: [
+            must(/toLowerCase\s*\(\s*\)/, "Debe usar toLowerCase()."),
+            must(/trim\s*\(\s*\)/, "Debe usar trim()."),
+            must(/sorted\s*\(\s*\)/, "Debe ordenar con sorted()."),
+            must(/collect\s*\(\s*Collectors\.toList\s*\(\s*\)\s*\)/, "Debe usar collect(Collectors.toList())."),
+            forbid(/return\s+null\s*;/, "No debe devolver null."),
+          ]
+        }
+      ]
+    },
+
+    {
+      id: 4,
+      title: "Excepciones y validación",
+      desc: "Lanzar y capturar excepciones. Fundamental para robustez.",
+      nextHint: "Ficheros (NIO)",
+      challenges: [
+        {
+          id: "4.1",
+          topic: "Validación",
+          time: "~2 min",
+          hint: "IllegalArgumentException cuando input no vale.",
+          task:
+            "Implementa validarEdad(int edad):\n" +
+            "si edad < 0 o edad > 120 lanza IllegalArgumentException con mensaje \"Edad inválida\".\n" +
+            "Si es válida, no hace nada.",
+          starter:
+`public class Validador {
+  public static void validarEdad(int edad) {
+    // completa aquí
+  }
+}`,
+          rules: [
+            must(/if\s*\(\s*edad\s*<\s*0\s*\|\|\s*edad\s*>\s*120\s*\)/, "Condición: edad < 0 || edad > 120"),
+            must(/throw\s+new\s+IllegalArgumentException\s*\(\s*"Edad inválida"\s*\)\s*;/, "Debe lanzar IllegalArgumentException(\"Edad inválida\")."),
+          ]
+        },
+        {
+          id: "4.2",
+          topic: "try/catch",
+          time: "~2 min",
+          hint: "Captura NumberFormatException.",
+          task:
+            "Completa parsearEntero(String s):\n" +
+            "intenta Integer.parseInt(s) y si falla devuelve -1.",
+          starter:
+`public class Parser {
+  public static int parsearEntero(String s) {
+    // try/catch y devuelve -1 en error
+    return 0;
+  }
+}`,
+          rules: [
+            must(/try\s*\{[\s\S]*Integer\.parseInt\s*\(\s*s\s*\)\s*;[\s\S]*\}/, "Debe usar try y llamar a Integer.parseInt(s)."),
+            must(/catch\s*\(\s*NumberFormatException\s+\w+\s*\)/, "Debe capturar NumberFormatException."),
+            must(/return\s*-1\s*;/, "En el catch debe devolver -1."),
+          ]
+        },
+        {
+          id: "4.3",
+          topic: "Excepción propia",
+          time: "~2 min",
+          hint: "Extiende RuntimeException.",
+          task:
+            "Crea class PedidoInvalidoException que extienda RuntimeException y tenga\n" +
+            "constructor con String mensaje que llame a super(mensaje).",
+          starter:
+`public class PedidoInvalidoException {
+  // completa aquí
+}`,
+          rules: [
+            must(/class\s+PedidoInvalidoException\b/, "Debe existir la clase PedidoInvalidoException."),
+            must(/extends\s+RuntimeException\b/, "Debe extender RuntimeException."),
+            must(/PedidoInvalidoException\s*\(\s*String\s+\w+\s*\)/, "Debe tener constructor con String mensaje."),
+            must(/super\s*\(\s*\w+\s*\)\s*;/, "En el constructor debe llamar a super(mensaje)."),
+          ]
+        }
+      ]
+    },
+
+    {
+      id: 5,
+      title: "Ficheros y NIO",
+      desc: "Lectura/escritura con java.nio. Muy DAW para logs, config, etc.",
+      nextHint: "APIs REST (Spring)",
+      challenges: [
+        {
+          id: "5.1",
+          topic: "Paths/Files",
+          time: "~2 min",
+          hint: "Usa Paths.get y Files.readString.",
+          task:
+            "Escribe un método leerTexto(String ruta) que:\n" +
+            "- cree Path con Paths.get(ruta)\n" +
+            "- devuelva Files.readString(path)\n" +
+            "- lance IOException (en la firma).",
+          starter:
+`import java.nio.file.*;
+import java.io.IOException;
+
+public class Archivos {
+  public static String leerTexto(String ruta) throws IOException {
+    // completa aquí
+    return "";
+  }
+}`,
+          rules: [
+            must(/String\s+leerTexto\s*\(\s*String\s+\w+\s*\)\s*throws\s+IOException/, "La firma debe incluir throws IOException."),
+            must(/Path\s+\w+\s*=\s*Paths\.get\s*\(\s*ruta\s*\)\s*;/, "Debe crear Path con Paths.get(ruta)."),
+            must(/return\s+Files\.readString\s*\(\s*\w+\s*\)\s*;/, "Debe devolver Files.readString(path)."),
+          ]
+        },
+        {
+          id: "5.2",
+          topic: "Write",
+          time: "~2 min",
+          hint: "Files.writeString con StandardOpenOption.",
+          task:
+            "Escribe guardarLog(String ruta, String linea) que añada la línea al final del fichero.\n" +
+            "Usa Files.writeString(path, linea + \"\\n\", StandardOpenOption.CREATE, StandardOpenOption.APPEND)\n" +
+            "y throws IOException.",
+          starter:
+`import java.nio.file.*;
+import java.io.IOException;
+
+public class Logs {
+  public static void guardarLog(String ruta, String linea) throws IOException {
+    // completa aquí
+  }
+}`,
+          rules: [
+            must(/throws\s+IOException/, "Debe declarar throws IOException."),
+            must(/StandardOpenOption\.CREATE/, "Debe incluir StandardOpenOption.CREATE."),
+            must(/StandardOpenOption\.APPEND/, "Debe incluir StandardOpenOption.APPEND."),
+            must(/Files\.writeString\s*\(/, "Debe usar Files.writeString(...)."),
+            must(/\+\s*"\\n"/, "Debe añadir salto de línea \"\\n\"."),
+          ]
+        },
+        {
+          id: "5.3",
+          topic: "try-with-resources",
+          time: "~2 min",
+          hint: "BufferedReader + Files.newBufferedReader.",
+          task:
+            "Implementa contarLineas(String ruta) usando try-with-resources y BufferedReader.\n" +
+            "Cuenta líneas con un while((linea=br.readLine())!=null).",
+          starter:
+`import java.nio.file.*;
+import java.io.*;
+
+public class Lineas {
+  public static int contarLineas(String ruta) throws IOException {
+    int count = 0;
+    // completa aquí
+    return count;
+  }
+}`,
+          rules: [
+            must(/try\s*\(\s*BufferedReader\s+\w+\s*=\s*Files\.newBufferedReader\s*\(/, "Debe usar try-with-resources con Files.newBufferedReader(...)."),
+            must(/while\s*\(\s*\(\s*\w+\s*=\s*\w+\.readLine\s*\(\s*\)\s*\)\s*!=\s*null\s*\)/, "Debe usar while((linea=br.readLine())!=null)."),
+            must(/count\s*\+\+\s*;/, "Debe incrementar count."),
+          ]
+        }
+      ]
+    },
+
+    {
+      id: 6,
+      title: "API REST (Spring Boot)",
+      desc: "Anotaciones típicas en DAW. Perfecto para comprobar estructura sin ejecutar.",
+      nextHint: "¡Final!",
+      challenges: [
+        {
+          id: "6.1",
+          topic: "Controller",
+          time: "~2 min",
+          hint: "@RestController + @GetMapping",
+          task:
+            "Crea un controlador HolaController con:\n" +
+            "- @RestController\n" +
+            "- método hola() con @GetMapping(\"/hola\")\n" +
+            "- que devuelva String \"Hola DAW\"",
+          starter:
+`// imports de Spring (no hace falta que compilen aquí)
+public class HolaController {
+  // completa aquí
+}`,
+          rules: [
+            must(/@RestController/, "Debe incluir @RestController."),
+            must(/class\s+HolaController\b/, "Debe existir HolaController."),
+            must(/@GetMapping\s*\(\s*"\/hola"\s*\)/, "Debe incluir @GetMapping(\"/hola\")."),
+            must(/String\s+hola\s*\(\s*\)/, "Debe existir método hola()."),
+            must(/return\s+"Hola DAW"\s*;/, "Debe devolver \"Hola DAW\"."),
+          ]
+        },
+        {
+          id: "6.2",
+          topic: "DTO",
+          time: "~2 min",
+          hint: "Record (Java 16+) o clase simple.",
+          task:
+            "Crea un record ProductoDTO(Long id, String nombre).",
+          starter:
+`public class ProductoDTO {
+  // cámbialo a record
+}`,
+          rules: [
+            must(/record\s+ProductoDTO\s*\(\s*Long\s+id\s*,\s*String\s+nombre\s*\)\s*\{?\s*\}?/, "Debe ser: record ProductoDTO(Long id, String nombre)"),
+            forbid(/class\s+ProductoDTO\b/, "No debe ser class; cámbialo a record."),
+          ]
+        },
+        {
+          id: "6.3",
+          topic: "POST",
+          time: "~2 min",
+          hint: "@PostMapping + @RequestBody",
+          task:
+            "En un controller, crea método crear(@RequestBody ProductoDTO dto)\n" +
+            "con @PostMapping(\"/productos\") y que devuelva dto.",
+          starter:
+`public class ProductoController {
+  // añade aquí el método crear
+}`,
+          rules: [
+            must(/@PostMapping\s*\(\s*"\/productos"\s*\)/, "Debe incluir @PostMapping(\"/productos\")."),
+            must(/ProductoDTO\s+crear\s*\(\s*@RequestBody\s+ProductoDTO\s+\w+\s*\)/, "Firma: ProductoDTO crear(@RequestBody ProductoDTO dto)"),
+            must(/return\s+\w+\s*;/, "Debe devolver dto."),
+            must(/@RestController/, "Debe incluir @RestController en el controller."),
+          ]
+        }
+      ]
+    }
+  ];
+
+  // =============================
+  //  Estado + Persistencia
+  // =============================
+  const STORAGE_KEY = "javaquest_progress_v1";
+  const state = loadState() || {
+    pageIdx: 0,
+    challengeIdx: 0,
+    passed: {} // passed[pageId] = { "1.1": true, ...}
+  };
+
+  // =============================
+  //  DOM
+  // =============================
+  const $ = (s) => document.querySelector(s);
+  const pageList = $("#pageList");
+  const barFill = $("#barFill");
+  const progText = $("#progText");
+
+  const pageTitle = $("#pageTitle");
+  const pageDesc = $("#pageDesc");
+
+  const challengeLabel = $("#challengeLabel");
+  const challengeMeta = $("#challengeMeta");
+  const hintEl = $("#hint");
+  const taskEl = $("#task");
+  const chipTime = $("#chipTime");
+  const chipTopic = $("#chipTopic");
+  const chipRules = $("#chipRules");
+  const codeEl = $("#code");
+
+  const outEl = $("#output");
+  const resultBadge = $("#resultBadge");
+  const dotEl = $("#dot");
+  const statusText = $("#statusText");
+
+  const btnPrev = $("#btnPrev");
+  const btnNext = $("#btnNext");
+  const btnReset = $("#btnReset");
+  const btnCheck = $("#btnCheck");
+  const btnClear = $("#btnClear");
+
+  // modal
+  const modalWrap = $("#modalWrap");
+  const modalTitle = $("#modalTitle");
+  const modalBadge = $("#modalBadge");
+  const modalSubtitle = $("#modalSubtitle");
+  const modalH2 = $("#modalH2");
+  const modalText = $("#modalText");
+  const modalClose = $("#modalClose");
+
+  // brand texts
+  $("#brandTitle").textContent = CONFIG.brandTitle;
+  $("#brandBadge").textContent = CONFIG.brandBadge;
+  $("#brandSubtitle").textContent = CONFIG.brandSubtitle;
+  $("#footerNote").textContent = CONFIG.footerNote;
+
+  // =============================
+  //  Render + navegación
+  // =============================
+  function getPage(){ return pages[state.pageIdx]; }
+  function getChallenge(){ return getPage().challenges[state.challengeIdx]; }
+
+  function renderPageList(){
+    pageList.innerHTML = "";
+    pages.forEach((p, idx) => {
+      const div = document.createElement("div");
+      div.className = "item" + (idx === state.pageIdx ? " active" : "");
+      const left = document.createElement("div");
+      left.innerHTML = `<strong>${escapeHtml(p.title)}</strong><br><small>${escapeHtml(p.desc)}</small>`;
+      const pill = document.createElement("span");
+      const ok = isPageComplete(p);
+      pill.className = "pill " + (ok ? "ok" : "no");
+      pill.textContent = ok ? "OK" : `${countPassedInPage(p)}/${p.challenges.length}`;
+      div.appendChild(left);
+      div.appendChild(pill);
+      div.addEventListener("click", () => {
+        state.pageIdx = idx;
+        state.challengeIdx = 0;
+        persist();
+        renderAll();
+      });
+      pageList.appendChild(div);
+    });
+    updateGlobalProgress();
+  }
+
+  function renderMain(){
+    const p = getPage();
+    const c = getChallenge();
+
+    pageTitle.textContent = `Página ${p.id}: ${p.title}`;
+    pageDesc.textContent = p.desc;
+
+    challengeLabel.textContent = `Reto ${c.id}`;
+    challengeMeta.textContent = `${state.challengeIdx + 1}/${p.challenges.length}`;
+
+    hintEl.textContent = c.hint;
+    taskEl.textContent = c.task;
+
+    chipTime.textContent = c.time;
+    chipTopic.textContent = `Tema: ${c.topic}`;
+    chipRules.textContent = `${c.rules.length} reglas`;
+
+    if (!codeEl.value || codeEl.dataset.loadedFor !== c.id) {
+      codeEl.value = c.starter;
+      codeEl.dataset.loadedFor = c.id;
+    }
+
+    setStatus("Completa el reto y pulsa “Comprobar”.", "neutral");
+    resultBadge.textContent = "Sin comprobar";
+    outEl.textContent = "";
+    updateNavButtons();
+  }
+
+  function updateNavButtons(){
+    btnPrev.disabled = (state.pageIdx === 0 && state.challengeIdx === 0);
+    // siguiente existe si hay más retos en la página o más páginas
+    const p = getPage();
+    const hasNextChallenge = state.challengeIdx < p.challenges.length - 1;
+    const hasNextPage = state.pageIdx < pages.length - 1;
+    btnNext.disabled = !(hasNextChallenge || hasNextPage);
+  }
+
+  function renderAll(){
+    renderPageList();
+    renderMain();
+  }
+
+  // =============================
+  //  Validación (tipo freeCodeCamp, estructural)
+  // =============================
+  function check(){
+    const c = getChallenge();
+    const src = codeEl.value;
+
+    const errors = [];
+    const warnings = [];
+
+    for (const rule of c.rules) {
+      const r = rule(src);
+      if (r && r.type === "error") errors.push(r.msg);
+      if (r && r.type === "warn") warnings.push(r.msg);
+    }
+
+    outEl.textContent = "";
+
+    if (errors.length === 0) {
+      markPassed();
+      resultBadge.textContent = warnings.length ? "OK (con avisos)" : "OK";
+      setStatus("¡Reto superado!", "ok");
+
+      if (warnings.length) {
+        outEl.textContent =
+          "✅ Pasa las reglas principales.\n" +
+          "⚠️ Avisos:\n- " + warnings.join("\n- ");
+      } else {
+        outEl.textContent = "✅ Todo correcto. Puedes pasar al siguiente reto.";
+      }
+
+      // ¿Página completada?
+      const p = getPage();
+      if (CONFIG.pageRewardEnabled && isPageComplete(p)) {
+        showPageReward(p);
+      }
+
+      // ¿Final completo?
+      if (isAllComplete()) {
+        showFinalReward();
+      }
+
+    } else {
+      resultBadge.textContent = "Fallo";
+      setStatus("Aún no pasa. Revisa los mensajes.", "bad");
+      outEl.textContent = "❌ Corrige lo siguiente:\n- " + errors.join("\n- ");
+    }
+  }
+
+  function markPassed(){
+    const p = getPage();
+    const c = getChallenge();
+    if (!state.passed[p.id]) state.passed[p.id] = {};
+    state.passed[p.id][c.id] = true;
+    persist();
+    renderPageList(); // actualiza pills y barra global
+  }
+
+  function isChallengePassed(pageId, challengeId){
+    return !!(state.passed[pageId] && state.passed[pageId][challengeId]);
+  }
+
+  function countPassedInPage(p){
+    const map = state.passed[p.id] || {};
+    return Object.keys(map).filter(k => map[k]).length;
+  }
+
+  function isPageComplete(p){
+    return p.challenges.every(ch => isChallengePassed(p.id, ch.id));
+  }
+
+  function isAllComplete(){
+    return pages.every(p => isPageComplete(p));
+  }
+
+  function updateGlobalProgress(){
+    const total = pages.reduce((acc,p) => acc + p.challenges.length, 0);
+    const done = pages.reduce((acc,p) => acc + countPassedInPage(p), 0);
+    progText.textContent = `${done}/${total}`;
+    barFill.style.width = (total ? Math.round((done/total)*100) : 0) + "%";
+  }
+
+  // =============================
+  //  Recompensas (modal)
+  // =============================
+  function showModal({title, badge, subtitle, h2, text}){
+    modalTitle.textContent = title;
+    modalBadge.textContent = badge;
+    modalSubtitle.textContent = subtitle || "";
+    modalH2.textContent = h2 || "¡Bien hecho!";
+    modalText.textContent = text || "";
+    modalWrap.style.display = "flex";
+  }
+
+  function showPageReward(page){
+    // Evita mostrarla repetidamente: guarda flag
+    const key = `page_reward_shown_${page.id}`;
+    if (localStorage.getItem(key) === "1") return;
+    localStorage.setItem(key, "1");
+
+    showModal({
+      title: CONFIG.pageRewardTitle,
+      badge: CONFIG.pageRewardBadge,
+      subtitle: `Página ${page.id} completada`,
+      h2: "Checkpoint conseguido ✅",
+      text: CONFIG.pageRewardTemplate(page)
+    });
+  }
+
+  function showFinalReward(){
+    const key = "final_reward_shown";
+    if (localStorage.getItem(key) === "1") return;
+    localStorage.setItem(key, "1");
+
+    showModal({
+      title: CONFIG.finalRewardTitle,
+      badge: CONFIG.finalRewardBadge,
+      subtitle: "Has completado las 6 páginas",
+      h2: CONFIG.finalRewardH2,
+      text: CONFIG.finalRewardText
+    });
+  }
+
+  modalClose.addEventListener("click", () => modalWrap.style.display = "none");
+  modalWrap.addEventListener("click", (e) => { if (e.target === modalWrap) modalWrap.style.display = "none"; });
+
+  // =============================
+  //  Controles
+  // =============================
+  btnCheck.addEventListener("click", check);
+
+  btnReset.addEventListener("click", () => {
+    const c = getChallenge();
+    codeEl.value = c.starter;
+    codeEl.dataset.loadedFor = c.id;
+    outEl.textContent = "";
+    resultBadge.textContent = "Sin comprobar";
+    setStatus("Reto reseteado. Vuelve a intentarlo.", "neutral");
+  });
+
+  btnClear.addEventListener("click", () => {
+    outEl.textContent = "";
+    setStatus("Salida limpiada.", "neutral");
+  });
+
+  btnPrev.addEventListener("click", () => nav(-1));
+  btnNext.addEventListener("click", () => nav(+1));
+
+  window.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") check();
+  });
+
+  function nav(dir){
+    const p = getPage();
+    if (dir < 0) {
+      if (state.challengeIdx > 0) state.challengeIdx--;
+      else if (state.pageIdx > 0) { state.pageIdx--; state.challengeIdx = pages[state.pageIdx].challenges.length - 1; }
+    } else {
+      if (state.challengeIdx < p.challenges.length - 1) state.challengeIdx++;
+      else if (state.pageIdx < pages.length - 1) { state.pageIdx++; state.challengeIdx = 0; }
+    }
+    persist();
+    renderAll();
+  }
+
+  function setStatus(text, type){
+    statusText.textContent = text;
+    dotEl.className = "dot" + (type === "ok" ? " ok" : type === "bad" ? " bad" : "");
+  }
+
+  // =============================
+  //  Reglas (helpers)
+  // =============================
+  function must(regex, msg){
+    return (src) => regex.test(src) ? null : ({type:"error", msg});
+  }
+  function forbid(regex, msg){
+    return (src) => regex.test(src) ? ({type:"error", msg}) : null;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  // =============================
+  //  Persistencia
+  // =============================
+  function persist(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+  function loadState(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || ""); }
+    catch { return null; }
+  }
+
+  // init
+  renderAll();
+})();
+</script>
+</body>
+</html>
