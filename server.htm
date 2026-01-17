@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JS Quest - Clases, Objetos e Instanciación (1 reto)</title>
+  <style>
+      :root{
+          --bg:#0b1020;
+          --panel:#111833;
+          --text:#e9ecff;
+          --muted:#aab2ff;
+          --accent:#6ee7ff;
+          --good:#4ade80;
+          --bad:#fb7185;
+          --border:rgba(255,255,255,.10);
+          --shadow: 0 12px 40px rgba(0,0,0,.35);
+          --radius:16px;
+          --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      }
+      *{box-sizing:border-box}
+      body{
+          margin:0;
+          font-family:var(--sans);
+          color:var(--text);
+          min-height:100vh;
+          display:flex;
+          justify-content:center;
+          padding:18px;
+          background: url('/img/server.png') no-repeat center center fixed;
+          background-size: cover;
+          backdrop-filter: blur(3px);
+      }
+      .app{
+          width:min(1200px, 100%);
+          display:grid;
+          grid-template-columns: 380px 1fr;
+          gap:16px;
+          background-color: rgba(0, 0, 0, 0.5);
+      }
+      @media (max-width: 980px){ .app{grid-template-columns:1fr} }
+      .card{
+          background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+          border:1px solid var(--border);
+          border-radius:var(--radius);
+          box-shadow:var(--shadow);
+          overflow:hidden;
+      }
+      header{
+          padding:16px 16px 12px;
+          border-bottom:1px solid var(--border);
+          background: linear-gradient(180deg, rgba(110,231,255,.10), transparent);
+      }
+      header .title{
+          display:flex; gap:10px; align-items:center;
+          font-weight:800; letter-spacing:.2px;
+      }
+      .badge{
+          font-size:12px;
+          padding:4px 10px;
+          border:1px solid var(--border);
+          border-radius:999px;
+          color:var(--muted);
+          background:rgba(0,0,0,.15);
+      }
+      header .sub{
+          margin-top:6px;
+          color:var(--muted);
+          font-size:13px;
+          line-height:1.3;
+      }
+
+      .side{display:flex; flex-direction:column}
+      .side .content{padding:14px 14px 16px}
+      .progress{
+          display:flex; gap:10px; align-items:center;
+          margin:10px 0 14px;
+      }
+      .bar{
+          flex:1;
+          height:10px;
+          border-radius:999px;
+          border:1px solid var(--border);
+          overflow:hidden;
+          background:rgba(0,0,0,.18);
+      }
+      .bar > div{
+          height:100%;
+          width:0%;
+          background: linear-gradient(90deg, var(--accent), rgba(110,231,255,.35));
+      }
+      .level-list{display:flex; flex-direction:column; gap:8px}
+      .lvl{
+          padding:10px 10px;
+          border:1px solid var(--border);
+          border-radius:12px;
+          background:rgba(0,0,0,.12);
+          cursor:pointer;
+          display:flex; align-items:center; justify-content:space-between;
+          transition:transform .08s ease, background .2s ease;
+      }
+      .lvl:hover{transform:translateY(-1px); background:rgba(0,0,0,.18)}
+      .lvl.active{outline:2px solid rgba(110,231,255,.35); background:rgba(110,231,255,.08)}
+      .lvl small{color:var(--muted)}
+      .pill{
+          font-size:12px;
+          padding:2px 8px;
+          border-radius:999px;
+          border:1px solid var(--border);
+          color:var(--muted);
+      }
+      .pill.ok{color:var(--good); border-color:rgba(74,222,128,.35); background:rgba(74,222,128,.10)}
+      .pill.no{color:var(--muted)}
+      .main header{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+      .main header .right{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+      button{
+          appearance:none;
+          border:1px solid var(--border);
+          background:rgba(0,0,0,.18);
+          color:var(--text);
+          padding:10px 12px;
+          border-radius:12px;
+          cursor:pointer;
+          font-weight:650;
+          transition:transform .06s ease, background .2s ease, border .2s ease;
+      }
+      button:hover{background:rgba(0,0,0,.25)}
+      button:active{transform:translateY(1px)}
+      button.primary{
+          border-color:rgba(110,231,255,.35);
+          background:rgba(110,231,255,.14);
+      }
+      button.primary:hover{background:rgba(110,231,255,.20)}
+      button.danger{
+          border-color:rgba(251,113,133,.35);
+          background:rgba(251,113,133,.10);
+      }
+
+      .grid{
+          display:grid;
+          grid-template-columns: 1fr 360px;
+          gap:12px;
+          padding:14px;
+      }
+      @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+      .panel{
+          background:rgba(0,0,0,.14);
+          border:1px solid var(--border);
+          border-radius:14px;
+          overflow:hidden;
+      }
+      .panel .ph{
+          padding:10px 12px;
+          border-bottom:1px solid var(--border);
+          color:var(--muted);
+          font-size:12px;
+          letter-spacing:.35px;
+          text-transform:uppercase;
+          display:flex; align-items:center; justify-content:space-between;
+          gap:10px;
+      }
+      .panel .pb{padding:12px}
+      textarea{
+          width:100%;
+          min-height:320px;
+          resize:vertical;
+          border:none;
+          outline:none;
+          font-family:var(--mono);
+          font-size:13px;
+          line-height:1.5;
+          background:transparent;
+          color:var(--text);
+      }
+      .hint{
+          color:var(--muted);
+          font-size:13px;
+          line-height:1.35;
+          margin:0 0 10px;
+          white-space:pre-line;
+      }
+      .task{
+          background:rgba(110,231,255,.08);
+          border:1px solid rgba(110,231,255,.25);
+          padding:10px 12px;
+          border-radius:12px;
+          margin:10px 0 12px;
+          color:var(--text);
+          white-space:pre-line;
+      }
+      .io{
+          font-family:var(--mono);
+          font-size:13px;
+          line-height:1.45;
+          white-space:pre-wrap;
+          word-break:break-word;
+          background:rgba(0,0,0,.20);
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:10px 10px;
+          min-height:140px;
+      }
+      .status{
+          margin-top:10px;
+          display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+          font-size:13px;
+          color:var(--muted);
+      }
+      .dot{width:10px; height:10px; border-radius:50%; background:rgba(170,178,255,.5)}
+      .dot.ok{background:rgba(74,222,128,.9)}
+      .dot.bad{background:rgba(251,113,133,.9)}
+      .tiny{
+          font-size:12px;
+          color:var(--muted);
+          margin-top:10px;
+          line-height:1.35;
+      }
+      .kbd{
+          font-family:var(--mono);
+          font-size:12px;
+          padding:2px 6px;
+          border:1px solid var(--border);
+          border-bottom-color:rgba(255,255,255,.18);
+          border-radius:8px;
+          background:rgba(0,0,0,.12);
+          color:var(--muted);
+      }
+      code.inline{
+          font-family:var(--mono);
+          font-size:12px;
+          padding:2px 6px;
+          border:1px solid var(--border);
+          border-radius:8px;
+          background:rgba(0,0,0,.16);
+          color:var(--muted);
+      }
+
+      /* ===== Modal ===== */
+      .modalOverlay{
+          position:fixed;
+          inset:0;
+          display:none;
+          align-items:center;
+          justify-content:center;
+          background:rgba(0,0,0,.65);
+          backdrop-filter: blur(6px);
+          z-index:9999;
+          padding:18px;
+      }
+      .modalOverlay.open{ display:flex; }
+
+      .modalCard{
+          width:min(720px, 100%);
+          background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+          border:1px solid var(--border);
+          border-radius:20px;
+          box-shadow: var(--shadow);
+          padding:22px;
+          text-align:center;
+      }
+
+      .modalTitle{
+          font-size: clamp(18px, 3.5vw, 32px);
+          font-weight: 900;
+          letter-spacing: .3px;
+          margin: 6px 0 18px;
+      }
+
+      .modalBtn{
+          padding: 12px 18px;
+          border-radius: 14px;
+          font-size: 16px;
+      }
+
+      .modalNote{
+          margin-top: 12px;
+          color: var(--muted);
+          font-size: 13px;
+      }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <!-- (tu HTML igual que lo tenías) -->
+  <section class="card side">
+    <header>
+      <div class="title">
+        <span>JS Quest</span>
+        <span class="badge">1-reto</span>
+      </div>
+      <div class="sub">
+        Un reto “de 5 min”: Clases, Objetos e Instanciación (con tests).
+      </div>
+    </header>
+    <div class="content">
+      <div class="progress">
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="badge" id="progText">0/0</div>
+      </div>
+      <div class="level-list" id="levelList"></div>
+      <div class="tiny">
+        Tip: Ejecuta con <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span>. <br>
+        Nota: Los tests validan también errores con <code class="inline">throw new Error(...)</code>.
+      </div>
+    </div>
+  </section>
+
+  <section class="card main">
+    <header>
+      <div>
+        <div class="title" id="levelTitle">Nivel</div>
+        <div class="sub" id="levelDesc"></div>
+      </div>
+      <div class="right">
+        <button id="btnReset" title="Vuelve al código inicial del nivel">Reset</button>
+        <button class="primary" id="btnRun">Ejecutar & Test</button>
+        <button class="danger" id="btnClear">Limpiar salida</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="ph">
+          <span>Editor</span>
+          <span class="badge" id="levelMeta"></span>
+        </div>
+        <div class="pb">
+          <p class="hint" id="hint"></p>
+          <div class="task" id="task"></div>
+          <textarea id="code" spellcheck="false"></textarea>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph">
+          <span>Salida (console.log)</span>
+          <span class="badge" id="testBadge">Sin ejecutar</span>
+        </div>
+        <div class="pb">
+          <div class="io" id="output"></div>
+          <div class="status">
+            <span class="dot" id="dot"></span>
+            <span id="statusText">Escribe código y pulsa “Ejecutar & Test”.</span>
+          </div>
+          <div class="tiny">
+            Runner local (navegador). No es un sandbox de seguridad fuerte.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ✅ Modal de victoria: ahora está ANTES del script -->
+<div id="winModal" class="modalOverlay" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div id="winTitle" class="modalTitle">La solución a esta pista es 39 <br /> Descubres el código: 4RF2-KPL4<br><small>Asegúrate de apuntarlo antes de salir</small></small></div>
+    <button id="btnFinalizar" class="primary modalBtn">Finalizar</button>
+    <div class="modalNote" id="closeNote" style="display:none;">
+      El navegador ha bloqueado el cierre automático. Puedes cerrar esta pestaña manualmente.
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const levels = [
+      {
+        id: 1,
+        title: "En los papeles garabateados que encuentras en el suelo con la letra de Alex, ha dejado un pseudocódigo ¿Qué querría decir?",
+        desc: "Interpreta el pseudocódigo: encapsula saldo, valida operaciones y llega al número final correcto.",
+        hint:
+          `Pistas:
+- Para “privado” usa un campo privado: #saldo (recomendado).
+- Valida cantidad > 0 en depositar/retirar.
+- En retirar: si no hay saldo, Error("Fondos insuficientes").
+- El saldo final correcto debe terminar siendo 39.
+- No expongas una propiedad pública llamada "saldo".`,
+        task:
+          `Implementa la clase CuentaBancaria que Alex dejó en pseudocódigo:
+
+Requisitos:
+- constructor(titular, saldoInicial)
+- saldo NO debe ser público (cuenta.saldo debe ser undefined o no existir)
+- depositar(cantidad):
+   - si cantidad <= 0 => throw Error("Cantidad inválida")
+   - si no, suma al saldo
+- retirar(cantidad):
+   - si cantidad <= 0 => throw Error("Cantidad inválida")
+   - si cantidad > saldo => throw Error("Fondos insuficientes")
+   - si no, resta al saldo
+- getSaldo(): devuelve el saldo actual (number)
+
+Prueba final (tu código debe hacerlo y debe imprimir 39):
+1) const c = new CuentaBancaria("Ana", 100)
+2) c.depositar(50)
+3) c.retirar(111)
+4) console.log(c.getSaldo())  // debe imprimir: 39`,
+        starter: `// Papeles de Alex (pseudocódigo):
+// "CuentaBancaria: guarda el saldo en secreto.
+//  Si meten una cantidad rara, grita.
+//  Si intentan sacar más de lo que hay, no lo permitas.
+//  Al final, tras unas operaciones, el número que debe aparecer es 39."
+//
+// Implementa la clase CuentaBancaria.
+//
+// Prueba final (debe imprimir 39):
+// const c = new CuentaBancaria("Ana", 100);
+// c.depositar(50);
+// c.retirar(111);
+// console.log(c.getSaldo());
+`,
+        tests: [
+          ({source}) => contains(source, "class CuentaBancaria", "Debes declarar: class CuentaBancaria { ... }"),
+          ({scope}) => {
+            if (typeof scope.CuentaBancaria !== "function") {
+              throw new Error("No se encontró CuentaBancaria en el scope. ¿La declaraste como class CuentaBancaria ...?");
+            }
+          },
+          ({scope}) => {
+            const c = new scope.CuentaBancaria("Ana", 100);
+            if ("saldo" in c && c.saldo !== undefined) {
+              throw new Error("El saldo no debe ser público. Evita exponer cuenta.saldo.");
+            }
+          },
+          ({scope}) => {
+            const c = new scope.CuentaBancaria("Ana", 100);
+            assertThrows(() => c.depositar(0), "Cantidad inválida", "depositar(0) debe lanzar Error('Cantidad inválida')");
+            assertThrows(() => c.depositar(-5), "Cantidad inválida", "depositar(-5) debe lanzar Error('Cantidad inválida')");
+            c.depositar(50);
+            if (c.getSaldo() !== 150) throw new Error("Tras depositar 50 (desde 100), saldo debe ser 150.");
+          },
+          ({scope}) => {
+            const c = new scope.CuentaBancaria("Ana", 100);
+            assertThrows(() => c.retirar(0), "Cantidad inválida", "retirar(0) debe lanzar Error('Cantidad inválida')");
+            assertThrows(() => c.retirar(-1), "Cantidad inválida", "retirar(-1) debe lanzar Error('Cantidad inválida')");
+            assertThrows(() => c.retirar(200), "Fondos insuficientes", "Si no hay saldo suficiente debe lanzar Error('Fondos insuficientes')");
+          },
+          ({logs, scope}) => {
+            const c = new scope.CuentaBancaria("Ana", 100);
+            c.depositar(50);
+            c.retirar(111);
+            if (c.getSaldo() !== 39) throw new Error("Saldo final esperado: 39");
+            if (logs.length) eq(logs[logs.length - 1], "39", "La última línea impresa debe ser 39.");
+          }
+        ]
+      },
+    ];
+
+    const state = { idx: 0, passed: new Set(loadPassed()) };
+
+    const $ = (s) => document.querySelector(s);
+    const levelList = $("#levelList");
+    const codeEl = $("#code");
+    const outEl = $("#output");
+    const titleEl = $("#levelTitle");
+    const descEl = $("#levelDesc");
+    const hintEl = $("#hint");
+    const taskEl = $("#task");
+    const metaEl = $("#levelMeta");
+    const badgeEl = $("#testBadge");
+    const dotEl = $("#dot");
+    const statusEl = $("#statusText");
+    const barFill = $("#barFill");
+    const progText = $("#progText");
+
+    // ===== Modal Win (✅ ahora sí existe) =====
+    const winModal = document.getElementById("winModal");
+    const btnFinalizar = document.getElementById("btnFinalizar");
+    const closeNote = document.getElementById("closeNote");
+
+    function showWinModal(){
+      if (!winModal) return;
+      if (closeNote) closeNote.style.display = "none";
+      winModal.classList.add("open");
+      winModal.setAttribute("aria-hidden", "false");
+      if (btnFinalizar) btnFinalizar.focus();
+    }
+    function hideWinModal(){
+      if (!winModal) return;
+      winModal.classList.remove("open");
+      winModal.setAttribute("aria-hidden", "true");
+    }
+
+    winModal?.addEventListener("click", (e) => {
+      if (e.target === winModal) hideWinModal();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && winModal?.classList.contains("open")) hideWinModal();
+    });
+
+    btnFinalizar?.addEventListener("click", () => {
+      window.close();
+      setTimeout(() => { if (closeNote) closeNote.style.display = "block"; }, 200);
+    });
+
+    function renderLevels(){
+      levelList.innerHTML = "";
+      levels.forEach((lv, i) => {
+        const div = document.createElement("div");
+        div.className = "lvl" + (i === state.idx ? " active" : "");
+        const left = document.createElement("div");
+        left.innerHTML = `<strong>#${lv.id} · ${escapeHtml(lv.title)}</strong><br><small>${escapeHtml(lv.desc)}</small>`;
+        const pill = document.createElement("span");
+        const ok = state.passed.has(lv.id);
+        pill.className = "pill " + (ok ? "ok" : "no");
+        pill.textContent = ok ? "OK" : "—";
+        div.appendChild(left);
+        div.appendChild(pill);
+        div.addEventListener("click", () => loadLevel(i));
+        levelList.appendChild(div);
+      });
+      updateProgress();
+    }
+
+    function loadLevel(i){
+      state.idx = i;
+      const lv = levels[state.idx];
+      titleEl.textContent = lv.title;
+      descEl.textContent = lv.desc;
+      hintEl.textContent = lv.hint;
+      taskEl.textContent = lv.task;
+      metaEl.textContent = `${lv.tests.length} test(s)`;
+      codeEl.value = lv.starter;
+      setStatus("Listo para ejecutar.", "neutral");
+      renderLevels();
+    }
+
+    function updateProgress(){
+      const done = state.passed.size;
+      const total = levels.length;
+      progText.textContent = `${done}/${total}`;
+      const pct = total ? Math.round((done/total)*100) : 0;
+      barFill.style.width = pct + "%";
+    }
+
+    function clearOutput(){ outEl.textContent = ""; }
+
+    function run(){
+      clearStatusIfNeeded();
+      clearOutput();
+
+      const lv = levels[state.idx];
+      const source = codeEl.value;
+
+      const logs = [];
+      const originalLog = console.log;
+      console.log = (...args) => {
+        const line = args.map(a => {
+          try { return typeof a === "string" ? a : JSON.stringify(a); }
+          catch { return String(a); }
+        }).join(" ");
+        logs.push(line);
+        outEl.textContent += (outEl.textContent ? "\n" : "") + line;
+      };
+
+      let runtimeError = null;
+      let scope = {};
+
+      try{
+        const wrapped = `
+        "use strict";
+        ${source}
+        return {
+          CuentaBancaria: (typeof CuentaBancaria !== "undefined") ? CuentaBancaria : undefined
+        };
+      `;
+        scope = new Function(wrapped)();
+      } catch(e){
+        runtimeError = e;
+      } finally {
+        console.log = originalLog;
+      }
+
+      if(runtimeError){
+        badgeEl.textContent = "Error";
+        setStatus(`Error: ${runtimeError.message}`, "bad");
+        return;
+      }
+
+      const results = [];
+      for(const t of lv.tests){
+        try{
+          t({logs, source, scope});
+          results.push({ok:true});
+        } catch(e){
+          results.push({ok:false, msg: e.message || String(e)});
+        }
+      }
+
+      const failed = results.find(r => !r.ok);
+      if(!failed){
+        badgeEl.textContent = "OK";
+        setStatus("¡Reto superado!", "ok");
+        state.passed.add(lv.id);
+        savePassed([...state.passed]);
+        renderLevels();
+
+        setTimeout(showWinModal, 2000);
+
+      } else {
+        badgeEl.textContent = "Fallo";
+        setStatus(failed.msg, "bad");
+      }
+    }
+
+    function setStatus(text, type){
+      statusEl.textContent = text;
+      dotEl.className = "dot" + (type === "ok" ? " ok" : type === "bad" ? " bad" : "");
+      badgeEl.style.borderColor = type === "ok" ? "rgba(74,222,128,.35)" :
+        type === "bad" ? "rgba(251,113,133,.35)" : "var(--border)";
+      badgeEl.style.background = type === "ok" ? "rgba(74,222,128,.10)" :
+        type === "bad" ? "rgba(251,113,133,.10)" : "rgba(0,0,0,.18)";
+    }
+
+    function clearStatusIfNeeded(){
+      if(badgeEl.textContent !== "Sin ejecutar"){
+        badgeEl.textContent = "Ejecutado";
+      }
+    }
+
+    function resetLevel(){
+      const lv = levels[state.idx];
+      codeEl.value = lv.starter;
+      setStatus("Reseteado. Listo para ejecutar.", "neutral");
+    }
+
+    function eq(actual, expected, msg){
+      if(actual !== expected){
+        throw new Error(`${msg}\n\nRecibido:\n${actual}\n\nEsperado:\n${expected}`);
+      }
+    }
+    function contains(source, fragment, msg){
+      if(!source.includes(fragment)) throw new Error(msg);
+    }
+    function escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function assertThrows(fn, expectedMessage, msg){
+      let thrown = false;
+      try{ fn(); }
+      catch(e){
+        thrown = true;
+        const m = e && e.message ? e.message : String(e);
+        if (expectedMessage && m !== expectedMessage){
+          throw new Error(`${msg}\n\nMensaje recibido: ${m}\nMensaje esperado: ${expectedMessage}`);
+        }
+      }
+      if(!thrown) throw new Error(msg + "\n\nNo se lanzó ningún error.");
+    }
+
+    function savePassed(arr){
+      localStorage.setItem("jsquest_passed_alex", JSON.stringify(arr));
+    }
+    function loadPassed(){
+      try{
+        const raw = localStorage.getItem("jsquest_passed_alex");
+        const arr = raw ? JSON.parse(raw) : [];
+        return Array.isArray(arr) ? arr : [];
+      }catch{ return []; }
+    }
+
+    $("#btnRun").addEventListener("click", run);
+    $("#btnClear").addEventListener("click", clearOutput);
+    $("#btnReset").addEventListener("click", resetLevel);
+    window.addEventListener("keydown", (e) => {
+      if((e.ctrlKey || e.metaKey) && e.key === "Enter") run();
+    });
+
+    renderLevels();
+    loadLevel(0);
+  })();
+</script>
+</body>
+</html>
